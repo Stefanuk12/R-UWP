@@ -1,0 +1,43 @@
+# .github/workflows/build.yml
+name: Build
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-pc-windows-gnu
+            archive: zip
+    steps:
+        - name: Checkout
+          uses: actions/checkout@master
+
+        - name: Read Cargo TOML
+          uses: SebRollen/toml-action@v1.0.2
+          id: read_toml
+          with:
+            file: 'Cargo.toml'
+            field: 'package.version'
+
+        - name: Compile Rust
+          id: compile
+          uses: rust-build/rust-build.action@v1.4.3
+          with:
+            RUSTTARGET: ${{ matrix.target }}
+            ARCHIVE_TYPES: ${{ matrix.archive }}
+            UPLOAD_MODE: none
+
+        - name: Create Release
+          uses: ncipollo/release-action@v1
+          with:
+            tag: Release ${{ steps.read_toml.outputs.value }}
+            artifacts: ${{ steps.compile.outputs.BUILT_ARCHIVE }}
+
+        
