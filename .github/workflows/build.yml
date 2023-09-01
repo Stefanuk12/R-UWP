@@ -34,10 +34,16 @@ jobs:
             ARCHIVE_TYPES: ${{ matrix.archive }}
             UPLOAD_MODE: none
 
+        - name: Push Tag
+          id: tag_version
+          uses: mathieudutour/github-tag-action@v6.1
+          with:
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            custom_tag: ${{ steps.read_toml.outputs.value }}
+
         - name: Create Release
           uses: ncipollo/release-action@v1
           with:
-            tag: Release ${{ steps.read_toml.outputs.value }}
+            tag: ${{ steps.tag_version.outputs.new_tag }}
+            name: Release ${{ steps.tag_version.outputs.new_tag }}
             artifacts: ${{ steps.compile.outputs.BUILT_ARCHIVE }}
-
-        
