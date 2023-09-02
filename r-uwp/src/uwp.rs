@@ -9,7 +9,7 @@ const PROCESSES: [&str; 1] = ["Windows10Universal.exe"];
 
 /// A macro for printing to the console only in debug mode.
 macro_rules! debug_println {
-    ($($arg:tt)*) => (if ::std::cfg!(debug_assertions) { ::std::println!($($arg)*); })
+    ($($arg:tt)*) => (if ::std::cfg!(debug_assertions) { ::log::info!($($arg)*); })
 }
 
 /// Grabs the window text of the active window.
@@ -176,8 +176,8 @@ fn remove_duplicate_instances() {
     }
 }
 
-/// Entrypoint.
-fn main() {
+/// Starts the UWP fixes.
+pub fn start_uwp() {
     // Fix mouse tp
     fix_right_click_tp();
     debug_println!("Bound RightClick");
