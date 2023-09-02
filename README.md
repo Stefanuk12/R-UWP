@@ -21,6 +21,6 @@ Note: This does not work on Fluxus (the very exploit this is targeting) since th
 
 - Custom `mousemove` functions
 - Custom `setclipboard` function
-- Custom `decompiler` via [unluau](https://github.com/valencefun/unluau)[^2]
+- ~~Custom `decompiler` via [unluau](https://github.com/valencefun/unluau)[^2]~~ This likely wont be added anytime soon as unluau does not support Roblox bytecode
 
 [^2]: this is not implemented yet
