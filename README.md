@@ -15,8 +15,12 @@ This program serves to fix UWP and to provide some additional fixes when it come
 
 ## Exploit fixes
 
-*todo*
+To get this to work, put the [client](./Client.lua) within your `autoexec` folder.
+
+Note: This does not work on Fluxus (the very exploit this is targeting) since they do not allow websocket connections to `localhost`
 
 - Custom `mousemove` functions
 - Custom `setclipboard` function
-- Custom `decompiler` via [unluau](https://github.com/valencefun/unluau)
+- Custom `decompiler` via [unluau](https://github.com/valencefun/unluau)[^2]
+
+[^2]: this is not implemented yet
