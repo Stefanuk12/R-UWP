@@ -118,8 +118,17 @@ fn get_rbx_processes(sys: &mut System) -> Vec<Process> {
     sys
         .processes()
         .into_iter()
-        .map(|(_, process)| (process.name().to_string(), process.exe().to_owned(), process.pid()))
-        .filter(|(name, path, _)| PROCESSES.contains(&name.as_str()) && path.to_str().unwrap_or("").contains("ROBLOXCORPORATION.ROBLOX_2"))
+        .filter_map(|(_, process)| {
+            // Grab the name, path, and pid
+            let (name, path, pid) = (process.name().to_string(), process.exe().to_owned(), process.pid());
+
+            // Check if the process is Roblox
+            if PROCESSES.contains(&name.as_str()) && path.to_str().unwrap_or("").contains("ROBLOXCORPORATION.ROBLOX_2") {
+                Some((name, path, pid))
+            } else {
+                None
+            }
+        })
         .collect::<Vec<_>>()
 }
 
