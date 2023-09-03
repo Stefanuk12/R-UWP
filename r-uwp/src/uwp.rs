@@ -34,50 +34,50 @@ fn is_roblox_active() -> bool {
     get_window_text() == "Roblox"
 }
 
-/// Bounds the mouse to Roblox.
-fn bound_mouse() {
-    let mouse_position = inputbot::MouseCursor::pos();
-    loop {
-        // So we don't use 100% CPU
-        std::thread::sleep(Duration::from_millis(1));
-
-        // Check if we moved our mouse
-        if inputbot::MouseCursor::pos() == mouse_position || !is_roblox_active() {
-            continue;
+/// Clips the mouse to active window.
+fn clip_mouse() {
+    // Grab the bounds of the window
+    let mut rect = RECT::default();
+    unsafe {
+        if let Err(e) = GetWindowRect(GetForegroundWindow(), &mut rect as *mut RECT) {
+            println!("An error occured while GetWindowRect: {}", e);
+            return
         }
-
-        // Grab the bounds of the window
-        let mut rect = RECT::default();
-        unsafe {
-            if let Err(e) = GetWindowRect(GetForegroundWindow(), &mut rect as *mut RECT) {
-                println!("An error occured while GetWindowRect: {}", e);
-                continue;
-            }
-        }
-
-        // Grab the current clip
-        let mut current_clip = RECT::default();
-        unsafe {
-            if let Err(e) = GetClipCursor(&mut current_clip as *mut RECT) {
-                println!("An error occured while GetClipCursor: {}", e);
-                continue;
-            };
-        }
-
-        // Check if the clip is already the same
-        if rect == current_clip {
-            continue;
-        }
-
-        // Confine our mouse to the window
-        unsafe {
-            if let Err(e) = ClipCursor(Some(&rect as *const RECT)) {
-                println!("An error occured while ClipCursor: {}", e);
-                continue;
-            }
-        }
-        debug_println!("Confined mouse to window");
     }
+
+    // Grab the current clip
+    let mut current_clip = RECT::default();
+    unsafe {
+        if let Err(e) = GetClipCursor(&mut current_clip as *mut RECT) {
+            println!("An error occured while GetClipCursor: {}", e);
+            return
+        };
+    }
+
+    // Check if the clip is already the same
+    if rect == current_clip {
+        return
+    }
+
+    // Confine our mouse to the window
+    unsafe {
+        if let Err(e) = ClipCursor(Some(&rect as *const RECT)) {
+            println!("An error occured while ClipCursor: {}", e);
+            return
+        }
+    }
+    debug_println!("Confined mouse to window");
+}
+
+/// Unclips the mouse from the window
+fn unclip_mouse() {
+    unsafe {
+        if let Err(e) = ClipCursor(None) {
+            println!("An error occured while ClipCursor: {}", e);
+            return
+        }
+    }
+    debug_println!("Unconfined mouse from window");
 }
 
 /// A fix for the right click teleporting bug.
@@ -87,6 +87,9 @@ fn fix_right_click_tp() {
         if !is_roblox_active() {
             return;
         }
+
+        // Clip our mouse
+        clip_mouse();
 
         // Save our mouse position
         let mouse_location = inputbot::MouseCursor::pos();
@@ -99,6 +102,9 @@ fn fix_right_click_tp() {
         // Mouse mouse
         inputbot::MouseCursor::move_abs(mouse_location.0, mouse_location.1);
         debug_println!("Teleported mouse back");
+
+        // Unclip
+        unclip_mouse();
     });
 }
 
@@ -181,9 +187,6 @@ pub fn start_uwp() {
     // Fix mouse tp
     fix_right_click_tp();
     debug_println!("Bound RightClick");
-
-    // Check if we move our mouse
-    std::thread::spawn(bound_mouse);
 
     // Check if a new instance spawns
     std::thread::spawn(remove_duplicate_instances);
