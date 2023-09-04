@@ -195,13 +195,13 @@ fn remove_duplicate_instances() {
 /// Starts the UWP fixes.
 pub fn start_uwp(args: Args) {
     // Fix mouse tp
-    if args.mouse_tp {
-        fix_right_click_tp(args.clip_mouse);
+    if !args.disable_mouse_tp {
+        fix_right_click_tp(!args.disable_clip_mouse);
         log::info!("Bound RightClick");
     }
 
     // Check if a new instance spawns
-    if args.tp_crash {
+    if !args.disable_tp_crash {
         std::thread::spawn(remove_duplicate_instances);
         log::info!("Spawned duplicate instance checker");
     }

@@ -8,27 +8,27 @@ mod commands;
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
-    /// Enable the websocket server.
-    #[arg(short, long, default_value = "true")]
-    pub ws: bool,
+    /// Disable the websocket server.
+    #[arg(short='w', long, default_value = "false")]
+    pub disable_ws: bool,
 
     /// The port the websocket server is attached to.
     #[arg(short, long, default_value = "8080")]
     pub port: u16,
 
-    /// Clips the mouse to the window during right click.
-    #[arg(short, long, default_value = "true")]
-    pub clip_mouse: bool,
+    /// Disables clipping the mouse to the window during right click.
+    #[arg(short='c', long, default_value = "false")]
+    pub disable_clip_mouse: bool,
 
-    /// Attempts to teleport the mouse back after letting go of right click.
-    #[arg(short, long, default_value = "true")]
-    pub mouse_tp: bool,
+    /// Disables the mouse teleport fix.
+    #[arg(short='m', long, default_value = "false")]
+    pub disable_mouse_tp: bool,
 
-    /// Attempts to fix teleport crashes.
-    #[arg(short, long, default_value = "true")]
-    pub tp_crash: bool,
+    /// Disables the teleport crash fix.
+    #[arg(short='t', long, default_value = "false")]
+    pub disable_tp_crash: bool,
 
-    /// Supresses all messages.
+    /// Supresses all output messages.
     #[arg(short, long, default_value = "false")]
     pub silent: bool,
 }
@@ -38,7 +38,7 @@ pub struct Args {
 async fn main() {
     // Parse the commandline arguments
     let args = Args::parse();
-    let port = if args.ws {
+    let port = if !args.disable_ws {
         Some(args.port.clone())
     } else {
         None
