@@ -33,6 +33,7 @@ jobs:
             SRC_DIR: './r-uwp'
             RUSTTARGET: ${{ matrix.target }}
             ARCHIVE_TYPES: ${{ matrix.archive }}
+            TOOLCHAIN_VERSION: stable
             UPLOAD_MODE: none
 
         - name: Push Tag
