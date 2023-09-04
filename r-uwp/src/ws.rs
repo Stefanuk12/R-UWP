@@ -6,8 +6,6 @@ use actix_web_actors::ws;
 
 use crate::commands::{Command, CommandResponse, CommandError};
 
-/// The port to run the WSS on.
-pub const PORT: u16 = 8080;
 /// The IP to run the WSS on.
 pub const IP: &str = "127.0.0.1";
 
@@ -60,13 +58,14 @@ async fn index(req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, E
 }
 
 /// The main function that starts the websocket server
-pub async fn start() -> std::io::Result<()> {
+pub async fn start(port: u16) -> std::io::Result<()> {
+    log::info!("Starting websocket server on {}:{}", IP, port);
     HttpServer::new(|| 
         App::new()
             .wrap(Logger::default())
             .route("/", web::get().to(index))
     )
-        .bind((IP, PORT))?
+        .bind((IP, port))?
         .run()
         .await
 }

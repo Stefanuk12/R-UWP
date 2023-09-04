@@ -18,3 +18,4 @@ strum = { version = "0.25.0", features = ["derive"] }
 sysinfo = "0.29.9"
 windows = { version = "0.51.1", features = ["Win32_UI_WindowsAndMessaging", "Win32_Foundation"] }
 r-uwp-derive = { path = "../r-uwp-derive" }
+clap = { version = "4.4.2", features = ["derive"] }

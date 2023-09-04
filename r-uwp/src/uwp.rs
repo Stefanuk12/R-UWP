@@ -4,13 +4,10 @@ use inputbot::MouseButton;
 use sysinfo::{System, SystemExt, ProcessExt, Pid};
 use windows::Win32::{UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowTextA, GetWindowRect, ClipCursor, GetClipCursor}, Foundation::RECT};
 
+use crate::Args;
+
 /// All of the processes to look for.
 const PROCESSES: [&str; 1] = ["Windows10Universal.exe"];
-
-/// A macro for printing to the console only in debug mode.
-macro_rules! debug_println {
-    ($($arg:tt)*) => (if ::std::cfg!(debug_assertions) { ::log::info!($($arg)*); })
-}
 
 /// Grabs the window text of the active window.
 fn get_window_text() -> String {
@@ -66,7 +63,7 @@ fn clip_mouse() {
             return
         }
     }
-    debug_println!("Confined mouse to window");
+    log::info!("Confined mouse to window");
 }
 
 /// Unclips the mouse from the window
@@ -77,11 +74,11 @@ fn unclip_mouse() {
             return
         }
     }
-    debug_println!("Unconfined mouse from window");
+    log::info!("Unconfined mouse from window");
 }
 
 /// A fix for the right click teleporting bug.
-fn fix_right_click_tp() {
+fn fix_right_click_tp(clip: bool) {
     MouseButton::RightButton.bind(move || {
         // Make sure we are in Roblox
         if !is_roblox_active() {
@@ -89,7 +86,9 @@ fn fix_right_click_tp() {
         }
 
         // Clip our mouse
-        clip_mouse();
+        if clip {
+            clip_mouse();
+        }
 
         // Save our mouse position
         let mouse_location = inputbot::MouseCursor::pos();
@@ -101,10 +100,12 @@ fn fix_right_click_tp() {
 
         // Mouse mouse
         inputbot::MouseCursor::move_abs(mouse_location.0, mouse_location.1);
-        debug_println!("Teleported mouse back");
+        log::info!("Teleported mouse back");
 
         // Unclip
-        unclip_mouse();
+        if clip {
+            unclip_mouse();
+        }
     });
 }
 
@@ -168,13 +169,13 @@ fn remove_duplicate_instances() {
                 // Check if the process exists
                 let Some(process) = sys.process(pid) else {
                     rbx_pids.remove(&pid);
-                    debug_println!("Roblox has been closed");
+                    log::info!("Roblox has been closed");
                     return
                 };
 
                 // A new process, add it to the list
                 if rbx_pids.insert(pid) {
-                    debug_println!("Roblox has been launched");
+                    log::info!("Roblox has been launched");
                     return;
                 }
 
@@ -186,21 +187,26 @@ fn remove_duplicate_instances() {
                 
                 // Success
                 rbx_pids.remove(&pid);
-                debug_println!("Successfully closed Roblox");
+                log::info!("Successfully closed Roblox");
             });
     }
 }
 
 /// Starts the UWP fixes.
-pub fn start_uwp() {
+pub fn start_uwp(args: Args) {
     // Fix mouse tp
-    fix_right_click_tp();
-    debug_println!("Bound RightClick");
+    if args.mouse_tp {
+        fix_right_click_tp(args.clip_mouse);
+        log::info!("Bound RightClick");
+    }
 
     // Check if a new instance spawns
-    std::thread::spawn(remove_duplicate_instances);
+    if args.tp_crash {
+        std::thread::spawn(remove_duplicate_instances);
+        log::info!("Spawned duplicate instance checker");
+    }
 
     // Start listening for mouse events, yields the current thread
-    debug_println!("Listening for input events...");
+    log::info!("Listening for input events...");
     inputbot::handle_input_events();
 }
