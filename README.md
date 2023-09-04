@@ -5,6 +5,23 @@ This program serves to fix UWP and to provide some additional fixes when it come
 - This can be ran in the background as a service
   - Written in Rust takes up very little resources
 
+## Usage
+
+```
+General and exploit fixes for UWP Roblox
+
+Usage: r-uwp.exe [OPTIONS]
+
+Options:
+  -w, --ws           Enable the websocket server
+  -p, --port <PORT>  The port the websocket server is attached to [default: 8080]
+  -c, --clip-mouse   Clips the mouse to the window during right click
+  -m, --mouse-tp     Attempts to teleport the mouse back after letting go of right click
+  -t, --tp-crash     Attempts to fix teleport crashes
+  -s, --silent       Supresses all messages
+  -h, --help         Print help
+  -V, --version      Print version
+```
 ## Roblox fixes
 
 - Fixes crashes on teleport[^1]

@@ -4,7 +4,7 @@ mod uwp;
 mod ws;
 mod commands;
 
-/// General and exploti fixes for UWP Roblox.
+/// General and exploit fixes for UWP Roblox.
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
