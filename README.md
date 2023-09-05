@@ -7,7 +7,7 @@ This program serves to fix UWP and to provide some additional fixes when it come
 
 ## How to install and running
 
-- Grab the latest release from [here](https://github.com/Stefanuk12/R-UWP/releases/latest), it should be the `.zip file`
+- Grab the latest release from [here](https://github.com/Stefanuk12/R-UWP/releases/latest), it should be the `.zip` file
 - Extract the `.zip`
 - Run the executable that you just extracted
   - If you wish, you can customise the settings. View [usage](#usage)
