@@ -5,6 +5,15 @@ This program serves to fix UWP and to provide some additional fixes when it come
 - This can be ran in the background as a service
   - Written in Rust takes up very little resources
 
+## How to install and running
+
+- Grab the latest release from [here](https://github.com/Stefanuk12/R-UWP/releases/latest), it should be the `.zip file`
+- Extract the `.zip`
+- Run the executable that you just extracted
+  - If you wish, you can customise the settings. View [usage](#usage)
+
+Note: You must use a third party application if you want to minimise to system tray or "hide" it.
+
 ## Usage
 
 ```
@@ -46,6 +55,7 @@ Options:
 
 ### Installation
 
+- Make sure you have done [this](#how-to-install)
 - Put the [client](./Client.lua) within your `autoexec` folder
 
 ### Features
