@@ -13,14 +13,26 @@ General and exploit fixes for UWP Roblox
 Usage: r-uwp.exe [OPTIONS]
 
 Options:
-  -w, --ws           Enable the websocket server
-  -p, --port <PORT>  The port the websocket server is attached to [default: 8080]
-  -c, --clip-mouse   Clips the mouse to the window during right click
-  -m, --mouse-tp     Attempts to teleport the mouse back after letting go of right click
-  -t, --tp-crash     Attempts to fix teleport crashes
-  -s, --silent       Supresses all messages
-  -h, --help         Print help
-  -V, --version      Print version
+  -w, --disable-ws
+          Disable the websocket server
+  -p, --port <PORT>
+          The port the websocket server is attached to [default: 8080]
+  -k, --shift-lock-key <SHIFT_LOCK_KEY>
+          The shift lock key to use. Provide the key id [default: 160]
+  -c, --disable-clip-mouse
+          Disables clipping the mouse to the window during right click
+  -l, --disable-clip-shift
+          Disables clipping the mouse to the window during shift lock
+  -m, --disable-mouse-tp
+          Disables the mouse teleport fix
+  -t, --disable-tp-crash
+          Disables the teleport crash fix
+  -s, --silent
+          Supresses all output messages
+  -h, --help
+          Print help
+  -V, --version
+          Print version
 ```
 ## Roblox fixes
 
