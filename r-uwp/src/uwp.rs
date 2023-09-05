@@ -1,8 +1,8 @@
 // Dependencies
-use std::{time::Duration, collections::HashSet, path::PathBuf};
+use std::{time::Duration, collections::HashSet, path::PathBuf, sync::{Arc, Mutex}};
 use inputbot::MouseButton;
 use sysinfo::{System, SystemExt, ProcessExt, Pid};
-use windows::Win32::{UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowTextA, GetWindowRect, ClipCursor, GetClipCursor}, Foundation::RECT};
+use winsafe::{prelude::user_Hwnd, HWND, GetClipCursor, ClipCursor};
 
 use crate::Args;
 
@@ -11,17 +11,22 @@ const PROCESSES: [&str; 1] = ["Windows10Universal.exe"];
 
 /// Grabs the window text of the active window.
 fn get_window_text() -> String {
-    unsafe {
-        // Grab the handle for the active window
-        let handle = GetForegroundWindow();
+    // Grab the handle for the active window
+    let handle = match HWND::GetForegroundWindow() {
+        Some(handle) => handle,
+        None => {
+            log::error!("An error occured while GetForegroundWindow");
+            return String::new()
+        }
+    };
 
-        // Attempt to get the text
-        let mut lpstring = [0u8; 256];
-        GetWindowTextA(handle, &mut lpstring);
-
-        // Convert to a string
-        let full_lpstring = String::from_utf8_lossy(&lpstring);
-        full_lpstring.trim_matches(char::from(0)).to_string()
+    // Attempt to get the text
+    match handle.GetWindowText() {
+        Ok(text) => text,
+        Err(e) => {
+            log::error!("An error occured while GetWindowText: {}", e);
+            String::new()
+        }
     }
 }
 
@@ -34,22 +39,23 @@ fn is_roblox_active() -> bool {
 /// Clips the mouse to active window.
 fn clip_mouse() {
     // Grab the bounds of the window
-    let mut rect = RECT::default();
-    unsafe {
-        if let Err(e) = GetWindowRect(GetForegroundWindow(), &mut rect as *mut RECT) {
-            println!("An error occured while GetWindowRect: {}", e);
+    let handle = HWND::GetForegroundWindow().expect("failed to get handle");
+    let rect = match handle.GetWindowRect() {
+        Ok(rect) => rect,
+        Err(e) => {
+            log::error!("An error occured while GetWindowRect: {}", e);
             return
         }
-    }
+    };
 
     // Grab the current clip
-    let mut current_clip = RECT::default();
-    unsafe {
-        if let Err(e) = GetClipCursor(&mut current_clip as *mut RECT) {
-            println!("An error occured while GetClipCursor: {}", e);
+    let current_clip = match GetClipCursor() {
+        Ok(rect) => rect,
+        Err(e) => {
+            log::error!("An error occured while GetClipCursor: {}", e);
             return
-        };
-    }
+        }
+    };
 
     // Check if the clip is already the same
     if rect == current_clip {
@@ -57,22 +63,18 @@ fn clip_mouse() {
     }
 
     // Confine our mouse to the window
-    unsafe {
-        if let Err(e) = ClipCursor(Some(&rect as *const RECT)) {
-            println!("An error occured while ClipCursor: {}", e);
-            return
-        }
-    }
+    if let Err(e) = ClipCursor(Some(&rect)) {
+        log::error!("An error occured while ClipCursor: {}", e);
+        return
+    };
     log::info!("Confined mouse to window");
 }
 
 /// Unclips the mouse from the window
 fn unclip_mouse() {
-    unsafe {
-        if let Err(e) = ClipCursor(None) {
-            println!("An error occured while ClipCursor: {}", e);
-            return
-        }
+    if let Err(e) = ClipCursor(None) {
+        log::error!("An error occured while ClipCursor: {}", e);
+        return
     }
     log::info!("Unconfined mouse from window");
 }
@@ -104,6 +106,32 @@ fn fix_right_click_tp(clip: bool) {
 
         // Unclip
         if clip {
+            unclip_mouse();
+        }
+    });
+}
+
+/// Binds mouse to window during shift lock.
+fn fix_shift_lock(key: u64) {
+    // Vars
+    let toggled = Arc::new(Mutex::new(false));
+    let key: inputbot::KeybdKey = key.into();
+
+    // Bind to the key
+    key.bind(move || {
+        // Make sure we are in Roblox
+        if !is_roblox_active() {
+            return;
+        }
+
+        // Toggle
+        let mut toggled = toggled.lock().unwrap();
+        *toggled = !*toggled;
+
+        // Clip
+        if *toggled {
+            clip_mouse();
+        } else {
             unclip_mouse();
         }
     });
@@ -198,6 +226,12 @@ pub fn start_uwp(args: Args) {
     if !args.disable_mouse_tp {
         fix_right_click_tp(!args.disable_clip_mouse);
         log::info!("Bound RightClick");
+    }
+
+    // Shift lock
+    if !args.disable_clip_shift {
+        fix_shift_lock(args.shift_lock_key);
+        log::info!("Bound ShiftLock");
     }
 
     // Check if a new instance spawns

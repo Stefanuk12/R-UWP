@@ -1,6 +1,6 @@
 [package]
 name = "r-uwp"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -16,6 +16,6 @@ inputbot = "0.6"
 log = "0.4"
 strum = { version = "0.25", features = ["derive"] }
 sysinfo = "0.29.9"
-windows = { version = "0.51", features = ["Win32_UI_WindowsAndMessaging", "Win32_Foundation"] }
+winsafe = { version = "0.0.17", default-features = false, features = ["user"] }
 r-uwp-derive = { path = "../r-uwp-derive" }
 clap = { version = "4", features = ["derive"] }

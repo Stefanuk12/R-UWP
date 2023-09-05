@@ -16,9 +16,17 @@ pub struct Args {
     #[arg(short, long, default_value = "8080")]
     pub port: u16,
 
+    /// The shift lock key to use. Provide the key id.
+    #[arg(short='k', long, default_value_t = 0xA0)]
+    pub shift_lock_key: u64,
+
     /// Disables clipping the mouse to the window during right click.
     #[arg(short='c', long, default_value = "false")]
     pub disable_clip_mouse: bool,
+
+    /// Disables clipping the mouse to the window during shift lock.
+    #[arg(short='l', long, default_value = "false")]
+    pub disable_clip_shift: bool,
 
     /// Disables the mouse teleport fix.
     #[arg(short='m', long, default_value = "false")]
@@ -43,7 +51,7 @@ async fn main() {
     } else {
         None
     };
-
+    
     // Start `env_logger`
     if args.silent {
         std::env::set_var("RUST_LOG", "none");
