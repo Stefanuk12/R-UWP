@@ -63,6 +63,14 @@ async fn main() {
         uwp::start_uwp(args);
     });
 
+    // So the exploit can connect to localhost
+    if let Err(e) = std::process::Command::new("cmd")
+        .args(&["/C", "CheckNetIsolation", "LoopbackExempt", "-a", "-n=\"ROBLOXCORPORATION.ROBLOX_55nm5eh3cm0pr\""])
+        .output() {
+            log::warn!("Failed to install the loopback exemption: {}. Please execute the `CheckNetIsolation` command manually for exploit fixes, view GitHub readme for more information.", e);
+        };
+    log::info!("Successfully installed the loopback exemption");
+
     // Run the WSS
     if let Some(port) = port {
         ws::start(port)

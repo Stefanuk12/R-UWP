@@ -44,15 +44,22 @@ Options:
 
 ## Exploit fixes
 
-To get this to work, put the [client](./Client.lua) within your `autoexec` folder.
+### Installation
 
-Then open `cmd` and run the following command:
-```
-CheckNetIsolation LoopbackExempt -a -n="ROBLOXCORPORATION.ROBLOX_55nm5eh3cm0pr"
-```
+- Put the [client](./Client.lua) within your `autoexec` folder
+
+### Features
 
 - Custom `mousemove` functions
 - Custom `setclipboard` function
 - ~~Custom `decompiler` via [unluau](https://github.com/valencefun/unluau)[^2]~~ This likely wont be added anytime soon as unluau does not support Roblox bytecode
 
 [^2]: this is not implemented yet
+
+## Failed to install the loopback exemption / Custom functions not working
+
+- Make sure you put the [client](./Client.lua) in autoexec
+- Open the Commmand Prompt (`cmd`) and execute the following command and if successful, you will see `OK.`:
+  ```
+  CheckNetIsolation LoopbackExempt -a -n="ROBLOXCORPORATION.ROBLOX_55nm5eh3cm0pr"
+  ```
