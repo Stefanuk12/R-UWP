@@ -1,8 +1,8 @@
 // Dependencies
-use std::{time::Duration, collections::HashSet, path::PathBuf, sync::{Arc, Mutex}};
+use std::{time::Duration, collections::HashSet, path::PathBuf};
 use inputbot::MouseButton;
 use sysinfo::{System, SystemExt, ProcessExt, Pid};
-use winsafe::{prelude::user_Hwnd, HWND, GetClipCursor, ClipCursor};
+use winsafe::{prelude::user_Hwnd, HWND, GetClipCursor, ClipCursor, RECT};
 
 use crate::Args;
 
@@ -36,15 +36,15 @@ fn is_roblox_active() -> bool {
     get_window_text() == "Roblox"
 }
 
-/// Clips the mouse to active window.
-fn clip_mouse() {
+/// Grab the current clip.
+fn get_clip() -> Option<(RECT, RECT)> {
     // Grab the bounds of the window
     let handle = HWND::GetForegroundWindow().expect("failed to get handle");
     let rect = match handle.GetWindowRect() {
         Ok(rect) => rect,
         Err(e) => {
             log::error!("An error occured while GetWindowRect: {}", e);
-            return
+            return None
         }
     };
 
@@ -53,8 +53,32 @@ fn clip_mouse() {
         Ok(rect) => rect,
         Err(e) => {
             log::error!("An error occured while GetClipCursor: {}", e);
-            return
+            return None
         }
+    };
+
+    // Return
+    Some((rect, current_clip))
+}
+
+/// Check if the mouse is clipped to the window.
+fn is_clipped() -> bool {
+    // Grab the clip
+    let (rect, current_clip) = match get_clip() {
+        Some(clip) => clip,
+        None => return false
+    };
+
+    // Return
+    rect == current_clip
+}
+
+/// Clips the mouse to active window.
+fn clip_mouse() {
+    // Grab the clip
+    let (rect, current_clip) = match get_clip() {
+        Some(clip) => clip,
+        None => return
     };
 
     // Check if the clip is already the same
@@ -114,7 +138,6 @@ fn fix_right_click_tp(clip: bool) {
 /// Binds mouse to window during shift lock.
 fn fix_shift_lock(key: u64) {
     // Vars
-    let toggled = Arc::new(Mutex::new(false));
     let key: inputbot::KeybdKey = key.into();
 
     // Bind to the key
@@ -124,15 +147,11 @@ fn fix_shift_lock(key: u64) {
             return;
         }
 
-        // Toggle
-        let mut toggled = toggled.lock().unwrap();
-        *toggled = !*toggled;
-
         // Clip
-        if *toggled {
-            clip_mouse();
-        } else {
+        if is_clipped() {
             unclip_mouse();
+        } else {
+            clip_mouse();
         }
     });
 }
