@@ -85,12 +85,12 @@ do
     -- // Wait for a response from the server with a certain Job Id
     function WebsocketManager:WaitForResponse(JobId, Timeout)
         -- // Wait for the response
-        local Response = SignalManager:Wait("ServerResponse", Timeout, function(ReceivedJobId, _Data)
+        local RJobId, RData = SignalManager:Wait("ServerResponse", Timeout, function(ReceivedJobId, _Data)
             return ReceivedJobId == JobId
         end)
 
         -- // Return the response (JobId, Data)
-        return unpack(Response)
+        return RJobId, RData
     end
 
     -- // Send a request to the websocket server
