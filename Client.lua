@@ -118,8 +118,7 @@ end
 -- // Attempt to connect
 local Connection = WebsocketManager.new("ws://localhost:8080")
 
--- // Override functions with our own
-getgenv().mousemoveabs = function(x, y)
+getgenv().mousemoverel = function(x, y)
     -- // Assert x, y are numbers
     assert(type(x) == "number", "x must be a number")
     assert(type(y) == "number", "y must be a number")
@@ -132,7 +131,8 @@ getgenv().mousemoveabs = function(x, y)
     )
 end
 
-getgenv().mousemoverel = function(x, y)
+-- // Override functions with our own
+getgenv().mousemoveabs = function(x, y)
     -- // Assert x, y are numbers
     assert(type(x) == "number", "x must be a number")
     assert(type(y) == "number", "y must be a number")
