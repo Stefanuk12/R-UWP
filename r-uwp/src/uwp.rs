@@ -1,13 +1,10 @@
 // Dependencies
-use std::{time::Duration, collections::HashSet, path::PathBuf};
+use std::time::Duration;
 use inputbot::MouseButton;
 use sysinfo::{System, SystemExt, ProcessExt, Pid};
 use winsafe::{prelude::user_Hwnd, HWND, GetClipCursor, ClipCursor, RECT};
 
 use crate::Args;
-
-/// All of the processes to look for.
-const PROCESSES: [&str; 1] = ["Windows10Universal.exe"];
 
 /// Grabs the window text of the active window.
 fn get_window_text() -> String {
@@ -156,37 +153,67 @@ fn fix_shift_lock(key: u64) {
     });
 }
 
-type Process = (String, PathBuf, Pid);
-/// Grabs all of the processes
-fn get_rbx_processes(sys: &mut System) -> Vec<Process> {
-    // Refresh the processes
-    sys.refresh_processes();
+/// Grabs all of the store apps from `tasklist`.
+#[derive(Debug, Clone)]
+struct TaskListEntry {
+    /// The name of the process.
+    name: String,
+    /// The PID of the process.
+    pid: Pid,
+    /// The package name of the process.
+    package_name: String,
+}
+impl PartialEq for TaskListEntry {
+    fn eq(&self, other: &Self) -> bool {
+        self.pid == other.pid
+    }
+}
 
-    // Grab the processes
-    sys
-        .processes()
-        .into_iter()
-        .filter_map(|(_, process)| {
-            // Grab the name, path, and pid
-            let (name, path, pid) = (process.name().to_string(), process.exe().to_owned(), process.pid());
+/// Grabs all of the store apps from `tasklist`.
+/// Filters for Roblox packages only.
+/// Only `RuntimeBroker.exe` are returned
+fn get_rbx_processes() -> Vec<TaskListEntry> {
+    // Grab the tasklist from `cmd`
+    let tasklist = std::process::Command::new("cmd")
+        .args(&["/C", "tasklist", "/apps"])
+        .output()
+        .expect("failed to execute process");
+    let binding = String::from_utf8_lossy(&tasklist.stdout);
+    let tasklist = binding.trim();
+
+    // Loop through all of the lines, ignore the first couple
+    tasklist
+        .lines()
+        .filter_map(|x| {
+            // Grab the exe, pid, memory usage, and package name
+            let split = x.split_whitespace().collect::<Vec<_>>();
+            let (exe, pid, package_name) = (
+                split.get(0)?,
+                split.get(2)?.parse::<Pid>().ok()?,
+                split.get(5)?,
+            );
 
             // Check if the process is Roblox
-            if PROCESSES.contains(&name.as_str()) && path.to_str().unwrap_or("").contains("ROBLOXCORPORATION.ROBLOX_2") {
-                Some((name, path, pid))
-            } else {
-                None
+            if !(package_name.contains("ROBLOXCORPORATION") && exe == &"RuntimeBroker.exe") {
+                return None
             }
+
+            // Return as object
+            Some(TaskListEntry {
+                name: exe.to_string(),
+                pid,
+                package_name: package_name.to_string(),
+            })
         })
-        .collect::<Vec<_>>()
+        .collect()
 }
 
 /// Removes duplicate Roblox instances.
 /// Usually occurs when teleporting to a new place.
 fn remove_duplicate_instances() {
     // Vars
-    let mut sys = System::new();
-    let mut old_processes: Vec<Process> = Vec::new();
-    let mut rbx_pids: HashSet<Pid> = HashSet::new();
+    let sys = System::new();
+    let mut old_processes: Vec<TaskListEntry> = Vec::new();
 
     // Main loop
     loop {
@@ -194,47 +221,41 @@ fn remove_duplicate_instances() {
         std::thread::sleep(Duration::from_millis(1));
 
         // Grab all of the changed processes
-        let mut changed_processes = get_rbx_processes(&mut sys);
+        let mut changed_processes = get_rbx_processes();
         
         // Check if empty
         if changed_processes.is_empty() {
             changed_processes = old_processes.clone();
         } else {
-            changed_processes = changed_processes
-                .into_iter()
-                .filter(|x| !old_processes.contains(x))
-                .collect::<Vec<_>>();
+            changed_processes.retain(|x| !old_processes.contains(x));
         }
 
         // Reset for the next iteration
-        old_processes = get_rbx_processes(&mut sys);
+        old_processes = get_rbx_processes();
 
-        // Grab all of the Roblox / RuntimeBroker processes ** missing this, need to test if apart of the roblox process **
+        // Only retain duplicate RuntimeBroker processes with the same package name
+        let changed_copy = changed_processes.clone();
+        changed_processes.retain(|x| changed_copy.iter().filter(|y| y.package_name == x.package_name).count() > 1);
+
+        // Loop through each duplicate process
         changed_processes
             .into_iter()
-            .for_each(|(_, _, pid)| {
+            .for_each(|x| {
                 // Check if the process exists
+                let pid = x.pid;
                 let Some(process) = sys.process(pid) else {
-                    rbx_pids.remove(&pid);
-                    log::info!("Roblox has been closed");
+                    log::info!("{} has been closed", x.name);
                     return
                 };
 
-                // A new process, add it to the list
-                if rbx_pids.insert(pid) {
-                    log::info!("Roblox has been launched");
-                    return;
-                }
-
                 // Attempt to kill the process (already in the list)
                 if !process.kill() {
-                    println!("Failed to close Roblox");
+                    println!("Failed to close {}", x.name);
                     return
                 }
                 
                 // Success
-                rbx_pids.remove(&pid);
-                log::info!("Successfully closed Roblox");
+                log::info!("Successfully closed {}", x.name);
             });
     }
 }

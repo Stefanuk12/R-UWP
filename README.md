@@ -49,7 +49,7 @@ Options:
 - Fixed mouse teleporting when letting go of right click
 - Makes the cursor not able to escape the window
 
-[^1]: not fully functional yet
+[^1]: not sure if this even works... 
 
 ## Exploit fixes
 
