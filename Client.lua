@@ -2,13 +2,6 @@
 local SignalManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/Stefanuk12/Signal/main/Manager.lua"))().new()
 SignalManager:Add("ServerResponse")
 
--- // Vars
-local CommandIds = {
-    "mousemoveabs",
-    "mousemoverel",
-    "setclipboard"
-}
-
 -- // Automatically manages connecting to websockets
 local WebsocketManager = {}
 WebsocketManager.__index = WebsocketManager
@@ -133,7 +126,7 @@ getgenv().mousemoveabs = function(x, y)
 
     -- // Send the request
     Connection:Send(
-        table.find(CommandIds, "mousemoveabs"),
+        "0",
         x,
         y
     )
@@ -146,7 +139,7 @@ getgenv().mousemoverel = function(x, y)
 
     -- // Send the request
     Connection:Send(
-        table.find(CommandIds, "mousemoverel"),
+        "1",
         x,
         y
     )
@@ -158,7 +151,7 @@ getgenv().setclipboard = function(x)
 
     -- // Send the request
     Connection:Send(
-        table.find(CommandIds, "setclipboard"),
+        "2",
         x
     )
 end
