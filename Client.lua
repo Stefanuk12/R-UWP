@@ -131,7 +131,6 @@ getgenv().mousemoverel = function(x, y)
     )
 end
 
--- // Override functions with our own
 getgenv().mousemoveabs = function(x, y)
     -- // Assert x, y are numbers
     assert(type(x) == "number", "x must be a number")
@@ -153,5 +152,12 @@ getgenv().setclipboard = function(x)
     Connection:Send(
         "2",
         x
+    )
+end
+
+getgenv().mouse1click = function()
+    -- // Send the request
+    Connection:Send(
+        "3"
     )
 end

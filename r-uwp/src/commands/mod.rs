@@ -1,6 +1,7 @@
 // Exports
 pub mod mousemouserel;
 pub mod mousemoveabs;
+pub mod mouse1click;
 pub mod setclipboard;
 
 // Dependencies
@@ -49,4 +50,5 @@ pub enum Command {
     MouseMoveRel(mousemouserel::Payload),
     /// x, y
     MouseMoveAbs(mousemoveabs::Payload),
+    Mouse1Click(mouse1click::Payload),
 }

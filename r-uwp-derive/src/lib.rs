@@ -47,21 +47,26 @@ pub fn command_derive(input: TokenStream) -> TokenStream {
         };
 
         // Get the documentation comment that holds the arguments
-        let doc = match &variant.attrs.first().unwrap().meta {
-            syn::Meta::NameValue(x) => {
-                match &x.value {
-                    syn::Expr::Lit(x) => {
-                        match &x.lit {
-                            syn::Lit::Str(y) => y.value().trim().to_string(),
+        let doc = match &variant.attrs.first() {
+            Some(a) => {
+                match &a.meta {
+                    syn::Meta::NameValue(x) => {
+                        match &x.value {
+                            syn::Expr::Lit(x) => {
+                                match &x.lit {
+                                    syn::Lit::Str(y) => y.value().trim().to_string(),
+                                    _ => panic!("only specify string literal"),
+                                }
+                            },
                             _ => panic!("only specify string literal"),
                         }
                     },
-                    _ => panic!("only specify string literal"),
+                    _ => panic!("only specify string literal")
                 }
             },
-            _ => panic!("only specify string literal")
+            None => String::from("")
         };
-        let docs = doc.split(", ").map(|x| format_ident!("{}", x)).collect::<Vec<_>>();
+        let docs = doc.split(", ").filter_map(|x| if x.is_empty() { None } else { Some(format_ident!("{}", x)) }).collect::<Vec<_>>();
 
         // Add each to the vectors
         execute.push(quote! {
